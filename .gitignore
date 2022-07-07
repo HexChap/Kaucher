@@ -17,7 +17,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-pymenu/
 lib64/
 parts/
 sdist/
