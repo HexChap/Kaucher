@@ -1,0 +1,4 @@
+passlib
+pydantic
+bcrypt
+psutil
