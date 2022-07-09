@@ -27,10 +27,20 @@ def extract_data() -> launch_data.LaunchData:
                     access_token=_get_value_cmdline("--accessToken", j_cmdline)
                 )
 
-                with open("data", "w+") as f:
-                    f.write(data.json())
+                return update_data_file(data)
 
-                return data
+
+def update_data_file(new_data: launch_data.LaunchData) -> launch_data.LaunchData:
+    """
+    Updates data file with new values.
+
+    :param new_data: Launch data
+    :return: app.schemas.launch_data.LaunchData
+    """
+    with open("data", "w+") as f:
+        f.write(new_data.json())
+
+    return new_data
 
 
 def _get_value_cmdline(arg: str, data: list):
