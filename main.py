@@ -1,8 +1,39 @@
-import psutil
+import os
 
-from app.controllers.launcher import extract_data, modify_rpc
+from pymenu import *
+from pymenu import colorpy
 
 
-modify_rpc(extract_data(), 2)
+def main():
+    columns = ["Сервер", "Версия"]
+    servers = {
+        "1.7.10": ["Tesla", "SkyFactory"]
+    }
 
-psutil.Process(list(filter(lambda proc: proc.name() == "javaw.exe", psutil.process_iter()))[0].pid).kill()
+    server_select_menu = ColumnsMenu(
+        "Выберите сборку для запуска",
+        columns, exit_option=ExitOption("Выйти", lambda: [colorpy.cls(), os._exit(0)])
+    )
+
+    def callback(o: OptionRow):
+        # TODO: Start server
+
+        server_menu = Menu(
+            f"Сборка {o.server_name} была запущена!",
+            exit_option=ExitOption("Назад", lambda: server_select_menu.start())
+        )
+
+        server_menu.start()
+
+    for sv in servers.keys():
+        server_select_menu.add_rows([
+            OptionRow(columns, [sn, sv], callback, server_name=sn)
+            for sn in servers.get(sv)
+        ])
+
+    while True:
+        server_select_menu.start()
+
+
+if __name__ == "__main__":
+    main()
