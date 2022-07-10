@@ -1,9 +1,8 @@
 import os
 import re
 import json
+import shutil
 from pathlib import Path
-
-import psutil
 
 from app.schemas import launch_data
 from app.core import errors
@@ -23,7 +22,7 @@ launch_cmdline = ("\"{java_path}\" "
                   "-cp \"{cp_libs}\" net.minecraft.launchwrapper.Launch "
                   "--tweakClass {tweak_class}.fml.common.launcher.FMLTweaker "
                   "--gameDir \"{game_dir}\" --assetsDir \"{assets}\" "
-                  "--assetIndex {ver} --uuid {uuid} --accessToken {token} "
+                  "--assetIndex {version} --uuid {uuid} --accessToken {token} "
                   "--version {version} --username {username} --userProperties {{}} "
                   "--userType mojang")
 tweak_classes = {
@@ -51,6 +50,12 @@ modpacks = {
 
 
 def get_current_launch_data(version: str, modpack: str):
+    if version not in modpacks.keys():
+        raise errors.WrongVersionError
+
+    if modpack not in modpacks[version]:
+        raise errors.ModpackDoesNotExists
+
     with open("data") as f:
         static_data = launch_data.LaunchData(**json.load(f))
 
@@ -63,8 +68,12 @@ def get_current_launch_data(version: str, modpack: str):
 
 def launch_java(data: launch_data.CurrentLaunchData):
     version_dir = data.kaboom_dir / "modpacks" / data.version
+    modpack_dir = version_dir / "modpacks" / data.modpack
 
-    os.chdir(data.kaboom_dir / "modpacks" / data.version / "modpacks" / data.modpack)
+    remove_nguard(data)
+    extend_mods(data)
+
+    os.chdir(modpack_dir)
 
     os.popen(
         launch_cmdline.format(
@@ -73,7 +82,7 @@ def launch_java(data: launch_data.CurrentLaunchData):
             natives=version_dir / "natives",
             cp_libs=version_dir / "libs" / "*",
             tweak_class = tweak_classes[data.version],
-            game_dir=version_dir / "modpacks" / data.modpack,
+            game_dir=modpack_dir,
             assets=version_dir / "assets",
             version=data.version,
             uuid=data.uuid,
@@ -100,16 +109,33 @@ def modify_rpc(data: launch_data.LaunchData, server: str | int):
         f.write(RPC_CONFIG % server)
 
 
-def remove_nguard(data: launch_data.LaunchData):
+def remove_nguard(data: launch_data.CurrentLaunchData):
     """
     Removes nGuardMod.
 
     :param data: Launch data
     :return:
     """
+    modpacks_dir = data.kaboom_dir / "modpacks" / data.version / "modpacks" / data.modpack
+    n_guard_path = modpacks_dir / "mods" / "1.7.10" / "nGuardMod.jar"
 
-    game_dir = data.kaboom_dir / "modpacks" / "1.7.10" / "tesla"
-
-    n_guard_path = game_dir / "mods" / "1.7.10" / "nGuardMod.jar"
     if os.path.isfile(n_guard_path):
         os.remove(n_guard_path)
+
+
+def extend_mods(data: launch_data.CurrentLaunchData):
+    """
+    Extends mods in the modpack dir via mods from the **mods** folder.
+
+    :param data: Launch data
+    :return:
+    """
+    local_mods_folder = Path(r"mods")
+    modpacks_dir = data.kaboom_dir / "modpacks" / data.version / "modpacks" / data.modpack
+
+    for file in os.listdir(local_mods_folder):
+        print(f"+ Extended with {file}")
+        if os.path.exists(modpacks_dir / "mods" / file):
+            continue
+
+        shutil.copy(local_mods_folder / file, modpacks_dir / "mods")
