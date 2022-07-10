@@ -4,14 +4,14 @@ import psutil
 from app.schemas import launch_data
 
 
-def extract_data() -> launch_data.LaunchData:
+def extract_data(condition: bool) -> launch_data.LaunchData:
     """
     Finds javaw process and extracts info from its start command line.
 
+    :param condition: Until when to search for the process
     :return: Username, game directory, access token and uuid
     """
-
-    while True:
+    while condition:
         for proc in psutil.process_iter():
             if proc.name() == "javaw.exe":
                 j_cmdline = proc.cmdline()

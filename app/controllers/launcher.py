@@ -33,16 +33,24 @@ tweak_classes = {
 modpacks = {
         "1.7.10": [
             "tesla",
-            "skyfactory"
+            "skyfactory",
+            "spacex",
+            "nevermine",
+            "dragonglory",
+            "darkshire"
         ],
         "1.12.2": [
             "edison",
-            "pixelmon"
+            "pixelmon",
+            "terrafirmacraft",
+            "nightmare",
+            "cybermagic",
+            "claustrophobia"
         ]
     }
 
 
-def get_lauch_data():
+def get_launch_data():
     with open("data") as f:
         return launch_data.LaunchData(**json.load(f))
 
