@@ -1,21 +1,20 @@
+import typing
 import psutil
 import os
 
 from win32process import GetWindowThreadProcessId
-from types import FunctionType, LambdaType
 from win32gui import GetForegroundWindow
-from typing import List, Union
 from pynput import keyboard
 
 from pymenu import colorpy
 
 
-def get_longest(_list: list, key: LambdaType = lambda i: len(i)) -> str:
+def get_longest(_list: list, key: typing.Callable = lambda i: len(i)) -> str:
     return sorted([str(s) for s in _list], key=key, reverse=True)[0]
 
 
 class Option:
-    def __init__(self, name: str, callback: Union[FunctionType, LambdaType] = None, **data) -> None:
+    def __init__(self, name: str, callback: typing.Callable = None, **data) -> None:
         self.name = name
         self.callback = callback
         self.is_selected = False
@@ -24,8 +23,8 @@ class Option:
 
 
 class OptionRow:
-    def __init__(self, columns: List[str], row: Union[list, dict],
-                 callback: Union[FunctionType, LambdaType] = None, **data) -> None:
+    def __init__(self, columns: list[str], row: list | dict,
+                 callback: typing.Callable = None, **data) -> None:
         self.columns = columns
         self.callback = callback
         self.is_selected = False
@@ -51,25 +50,36 @@ class ExitOption(Option):
 
 
 class Menu:
-    def __init__(self, title: str = None, options: List[Option] = None,
+    def __init__(self, title: str = None, options: list[Option] = None,
                  selected_option: int = 0, exit_option: ExitOption = None) -> None:
         self.title = title
 
-        self.options: List[Option] = [o for o in options
+        self.options: list[Option] = [o for o in options
                                       if isinstance(o, Option)] if options else []
 
         self.exit_option = exit_option
         self.selected_option = selected_option
 
-    def add_option(self, option: Option) -> None:
-        self.options.append(option)
+        if self.exit_option:
+            self.options.append(self.exit_option)
 
-    def add_options(self, options: List[Option]) -> None:
-        self.options.extend(options)
+        self.__is_active = False
+
+    def add_option(self, option: Option) -> None:
+        self.options.insert(len(self.options) - int(bool(self.exit_option)), option)
+
+        if self.__is_active:
+            self.__render()
+
+    def add_options(self, options: list[Option]) -> None:
+        [self.options.insert(len(self.options) - int(bool(self.exit_option)), option) for option in options]
+
+        if self.__is_active:
+            self.__render()
 
     def __render(self) -> None:
         """ Custom render method should return\n
-        Tuple: (longest: List[int], rendered: List[str]).
+        Tuple: (longest: int, rendered: list[str]).
         """
         buffer = ["\x1b[2J"]
         longest = self.get_longest_option()
@@ -106,7 +116,7 @@ class Menu:
 
         print("\n".join(buffer))
 
-    def __on_key_press(self, key) -> Union[None, bool]:
+    def __on_key_press(self, key) -> None | bool:
         fgw_pid = GetWindowThreadProcessId(GetForegroundWindow())[1]
 
         if not os.getpid() in [p.pid for p in psutil.Process(fgw_pid).children(recursive=True)]:
@@ -137,25 +147,22 @@ class Menu:
         self.options[self.selected_option].is_selected = True
         self.__render()
 
-    def event(self, func) -> None:
-        if isinstance(func, FunctionType):
+    def event(self, func: typing.Callable) -> None:
+        if callable(func):
             setattr(self, func.__name__, func)
 
-    def start(self) -> Union[None, Option]:
-        if self.exit_option:
-            if len(self.options) > 0 and not isinstance(self.options[-1], ExitOption):
-                self.options.append(self.exit_option)
-
-            elif len(self.options) == 0:
-                self.options.append(self.exit_option)
-
+    def start(self) -> None | Option:
+        self.__is_active = True
         self.options[self.selected_option].is_selected = True
 
         colorpy.hide_cursor()
         self.__render()
 
+        # Waiting for user to press Enter keyboard key and reacts on user's Up and Down keyboard key presses
         with keyboard.Listener(on_press=self.__on_key_press) as listener:
             listener.join()
+
+        self.__is_active = False
 
         os.system("cls")
         colorpy.show_cursor()
@@ -172,33 +179,48 @@ class Menu:
         else:
             return o
 
+    @property
+    def is_active(self):
+        return self.__is_active
+
     def get_longest_option(self) -> int:
         return len(get_longest([self.title,
                                 *[o.name for o in self.options]], lambda i: len(i)))
 
 
 class ColumnsMenu:
-    def __init__(self, title: str = None, columns: List[str] = None,
-                 rows: List[OptionRow] = None, selected_row: int = 0,
+    def __init__(self, title: str = None, columns: list[str] = None,
+                 rows: list[OptionRow] = None, selected_row: int = 0,
                  exit_option: ExitOption = None) -> None:
         self.title = title
 
         self.columns = columns or []
-        self.rows: List[OptionRow] = [r for r in rows
+        self.rows: list[OptionRow] = [r for r in rows
                                       if isinstance(r, OptionRow)] if rows else []
 
         self.exit_option = exit_option
         self.selected_row = selected_row
 
-    def add_row(self, row: OptionRow) -> None:
-        self.rows.append(row)
+        if self.exit_option:
+            self.rows.append(self.exit_option)
 
-    def add_rows(self, rows: List[OptionRow]) -> None:
-        self.rows.extend(rows)
+        self.__is_active = False
+
+    def add_row(self, row: OptionRow) -> None:
+        self.rows.insert(len(self.rows) - int(bool(self.exit_option)), row)
+
+        if self.__is_active:
+            self.__render()
+
+    def add_rows(self, rows: list[OptionRow]) -> None:
+        [self.rows.insert(len(self.rows) - int(bool(self.exit_option)), row) for row in rows]
+
+        if self.__is_active:
+            self.__render()
 
     def __render(self) -> None:
         """ Custom render method should return\n
-        Tuple: (longest: List[int], rendered: List[str]).
+        Tuple: (longest: list[int], rendered: list[str]).
         """
         buffer = ["\x1b[2J"]
         longest = self.get_longest_option()
@@ -253,7 +275,7 @@ class ColumnsMenu:
 
         print("\n".join(buffer))
 
-    def __on_key_press(self, key) -> Union[None, bool]:
+    def __on_key_press(self, key) -> None | bool:
         fgw_pid = GetWindowThreadProcessId(GetForegroundWindow())[1]
 
         if not os.getpid() in [p.pid for p in psutil.Process(fgw_pid).children(recursive=True)]:
@@ -285,24 +307,21 @@ class ColumnsMenu:
         self.__render()
 
     def event(self, func) -> None:
-        if isinstance(func, FunctionType):
+        if callable(func):
             setattr(self, func.__name__, func)
 
-    def start(self) -> Union[None, OptionRow]:
-        if self.exit_option:
-            if len(self.rows) > 0 and not isinstance(self.rows[-1], ExitOption):
-                self.rows.append(self.exit_option)
-
-            elif len(self.rows) == 0:
-                self.rows.append(self.exit_option)
-
+    def start(self) -> None | OptionRow:
+        self.__is_active = True
         self.rows[self.selected_row].is_selected = True
 
         colorpy.hide_cursor()
         self.__render()
 
+        # Keyboard listener
         with keyboard.Listener(on_press=self.__on_key_press) as listener:
             listener.join()
+
+        self.__is_active = False
 
         os.system("cls")
         colorpy.show_cursor()
@@ -319,7 +338,11 @@ class ColumnsMenu:
         else:
             return r
 
-    def get_longest_option(self) -> List[int]:
+    @property
+    def is_active(self):
+        return self.__is_active
+
+    def get_longest_option(self) -> list[int]:
         longest = []
 
         for i in range(len(self.columns)):

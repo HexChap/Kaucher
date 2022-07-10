@@ -1,38 +1,86 @@
 import os
+import psutil
+import time
 
 from pymenu import *
 from pymenu import colorpy
+from threading import Thread
 
 
-def main():
+def show_mp_select_menu(prev_menu: Menu):
     columns = ["Сервер", "Версия"]
-    servers = {
+    modpacks = {
         "1.7.10": ["Tesla", "SkyFactory"]
     }
 
-    server_select_menu = ColumnsMenu(
+    menu = ColumnsMenu(
         "Выберите сборку для запуска",
-        columns, exit_option=ExitOption("Выйти", lambda: [colorpy.cls(), os._exit(0)])
+        columns, exit_option=ExitOption("Назад", lambda: prev_menu.start())
     )
 
     def callback(o: OptionRow):
-        # TODO: Start server
+        # TODO: Start modpack
 
-        server_menu = Menu(
-            f"Сборка {o.server_name} была запущена!",
-            exit_option=ExitOption("Назад", lambda: server_select_menu.start())
+        modpack_menu = Menu(
+            f"Сборка {o.modpack_name} была запущена!",
+            exit_option=ExitOption("Назад", lambda: menu.start())
         )
 
-        server_menu.start()
+        modpack_menu.start()
 
-    for sv in servers.keys():
-        server_select_menu.add_rows([
-            OptionRow(columns, [sn, sv], callback, server_name=sn)
-            for sn in servers.get(sv)
+    for sv in modpacks.keys():
+        menu.add_rows([
+            OptionRow(columns, [sn, sv], callback, modpack_name=sn)
+            for sn in modpacks.get(sv)
         ])
 
+    menu.start()
+
+
+def show_account_update_menu(prev_menu: Menu):
+    menu = Menu(
+        "Запустите любую сборку из официального лаунчера Kaboom 2.0",
+        exit_option=ExitOption("Назад", lambda: prev_menu.start())
+    )
+
+    def update_account():
+        while menu.is_active:
+            for proc in psutil.process_iter():
+                if proc.name() == "javaw.exe":
+                    cmd_line = proc.cmdline()
+
+                    # if "accessToken" not in cmd_line:
+                    #     continue
+
+                    proc.kill()
+
+                    menu.title = "Выберите аккаунт"
+                    menu.add_option(Option(
+                        cmd_line[cmd_line.index("--username")+1]
+                    ))
+
+                    return
+
+            time.sleep(0.5)
+
+    Thread(target=update_account).start()
+
+    menu.start()
+
+
+def main():
+    main_menu = Menu(
+        "Выберите действие",
+        exit_option=ExitOption("Выйти", lambda: [colorpy.cls(), os.exit(0)])
+    )
+
+    main_menu.add_options([
+        Option("Запустить сборку", lambda: show_mp_select_menu(main_menu)),
+        Option("Обновить данные", lambda: show_account_update_menu(main_menu))
+    ])
+
     while True:
-        server_select_menu.start()
+        main_menu.start()
 
 
 if __name__ == "__main__":
