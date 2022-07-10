@@ -24,7 +24,7 @@ launch_cmdline = ("\"{java_path}\" "
                   "--tweakClass {tweak_class}.fml.common.launcher.FMLTweaker "
                   "--gameDir \"{game_dir}\" --assetsDir \"{assets}\" "
                   "--assetIndex {ver} --uuid {uuid} --accessToken {token} "
-                  "--version {ver} --username {username} --userProperties {{}} "
+                  "--version {version} --username {username} --userProperties {{}} "
                   "--userType mojang")
 tweak_classes = {
     "1.7.10": "cpw.mods",
@@ -33,39 +33,49 @@ tweak_classes = {
 modpacks = {
         "1.7.10": [
             "tesla",
-            "skyfactory"
+            "skyfactory",
+            "spacex",
+            "nevermine",
+            "dragonglory",
+            "darkshire"
         ],
         "1.12.2": [
             "edison",
-            "pixelmon"
+            "pixelmon",
+            "terrafirmacraft",
+            "nightmare",
+            "cybermagic",
+            "claustrophobia"
         ]
     }
 
 
-def get_lauch_data():
+def get_current_launch_data(version: str, modpack: str):
     with open("data") as f:
-        return launch_data.LaunchData(**json.load(f))
+        static_data = launch_data.LaunchData(**json.load(f))
+
+    return launch_data.CurrentLaunchData(
+        version=version,
+        modpack=modpack,
+        **static_data.dict()
+    )
 
 
-def launch_java(data: launch_data.LaunchData, ver: str, modpack: str):
-    if ver not in modpacks.keys():
-        raise errors.WrongVersionError
+def launch_java(data: launch_data.CurrentLaunchData):
+    version_dir = data.kaboom_dir / "modpacks" / data.version
 
-    if modpack not in modpacks[ver]:
-        raise errors.ModpackDoesNotExists
-
-    os.chdir(data.kaboom_dir / "modpacks" / ver / "modpacks" / modpack)
+    os.chdir(data.kaboom_dir / "modpacks" / data.version / "modpacks" / data.modpack)
 
     os.popen(
         launch_cmdline.format(
             java_path=data.kaboom_dir / "runtime-windows-x64" / "bin" / "javaw.exe",
             memory=data.memory,
-            natives=data.kaboom_dir / "modpacks" / ver / "natives",
-            cp_libs=data.kaboom_dir / "modpacks" / ver / "libs" / "*",
-            tweak_class = tweak_classes[ver],
-            game_dir=data.kaboom_dir / "modpacks" / ver / "modpacks" / modpack,
-            assets=data.kaboom_dir / "modpacks" / ver / "assets",
-            ver=ver,
+            natives=version_dir / "natives",
+            cp_libs=version_dir / "libs" / "*",
+            tweak_class = tweak_classes[data.version],
+            game_dir=version_dir / "modpacks" / data.modpack,
+            assets=version_dir / "assets",
+            version=data.version,
             uuid=data.uuid,
             token=data.access_token,
             username=data.username,
