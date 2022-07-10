@@ -9,3 +9,8 @@ class LaunchData(BaseModel):
     memory: int
     uuid: str
     access_token: str
+
+
+class CurrentLaunchData(LaunchData):
+    version: str
+    modpack: str
