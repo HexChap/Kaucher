@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class LaunchData(BaseModel):
     username: str
-    game_dir: Path
+    kaboom_dir: Path
+    memory: int
     uuid: str
     access_token: str
