@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 import os
-from threading import Thread
 from tkinter import Button, Canvas, Tk
 import tkinter
 
 from app.controllers import launcher, extractor
+from app import gui
 
 
 class Utils:
@@ -80,6 +80,8 @@ class App:
         for k, v in launcher.modpacks.items():
             mp_list.extend([[mp, k] for mp in v])
 
+        screen = gui.Screen(self._canv)
+
         # Add buttons with mp names
         for i, mp in enumerate(mp_list[(page-1)*MP_FOR_PAGE:page*MP_FOR_PAGE]):
             self._canv.create_rectangle(
@@ -110,19 +112,29 @@ class App:
             # Create Open mp folder button
             # TODO: Callback (open mp folder)
             x, y = 137.5 + 187.5 * ((i - 3 * (i > 2))), 140 + 190 * (i > 2)
-            self._canv.create_rectangle(
-                x-17, y-15, x+17, y+15, fill=self.theme.bg, outline=self.theme.outline, width=1.5
-            )
-            self._canv.create_text(
-                x, y-2, text="📁", fill=self.theme.fg, font=("Arial", 15)
-            )
+
+            gui.Button(
+                text=f"{i}📁",
+                width=34,
+                height=30,
+                bg=self.theme.bg,
+                fg=self.theme.fg,
+                font=("Arial", 15),
+                border=self.theme.outline,
+                border_width=1.5,
+                callback=lambda mp=mp: os.startfile("")
+            ).place(screen, x-17, y-15)
+
+
+
+
 
             # open_folder_btn = Button(
             #     self._canv, text="📂", bg=self.theme.bg, fg=self.theme.fg,
             #     borderwidth=0, width=3, height=1, font="Arial 13"
-            #     # command=lambda mp=mp: os.startfile(
-            #     #     f"{ROOT_DIR}/data/minecraft/{mp[3]}/modpacks/{mp[0]}"
-            #     # )
+            #     command=lambda mp=mp: os.startfile(
+            #         f"{ROOT_DIR}/data/minecraft/{mp[3]}/modpacks/{mp[0]}"
+            #     )
             # )
 
             # Place buttons
