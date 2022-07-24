@@ -39,13 +39,26 @@ class Screen:
         )) for tag in BUTTON_TAGS]
 
     def _on_mouse_click(self, event: MouseEvent):
+        """
+        Base method that is called when the user clicks on the screen.
+        Fires the on_mouse_click method if this screen has it.
+        Fires button callback if it was clicked.
+        
+        :param event:MouseEvent: Mouse button click event
+        """
         if hasattr(self, "on_mouse_click"):
-            self._on_mouse_click(event)
+            self.on_mouse_click(event)
 
-        for b, x, y in self.buttons:
-            if (event.x >= x and event.x <= x+b.width) and (event.y >= y and event.y <= y+b.height):
-                b.callback()
+        for btn, x, y in self.buttons:
+            if (event.x >= x and event.x <= x+btn.width) and \
+                (event.y >= y and event.y <= y+btn.height):
+                btn._on_mouse_click(event)
 
     def event(self, func: Callable):
+        """
+        Decorator that registers an event handler.
+        
+        :param func:Callable: Specify the function that is called when the event occurs
+        """
         if callable(func):
             setattr(self, func.__name__, func)

@@ -36,8 +36,8 @@ class App:
             bg="#161620",
             outline="#1f2029",
             mp_bg="#1a1b26",
-            fg="#e0e2e4",
-            font_family=("Arial", 11, "bold")
+            fg="#cccccc",
+            font_family=("Arial", 13)
         )
 
         self._root = Tk(self._window_title, self._window_title)
@@ -102,19 +102,28 @@ class App:
                 fill=self.theme.fg, justify="center"
             )
 
-            # Create Start mp button
+            # Create buttons
+            x, y = 137.5 + 187.5 * ((i - 3 * (i > 2))), 190 * (i > 2)
+
+            # Create Modpack start button
             # TODO: Callback (launch mp)
-            start_btn = Button(
-                self._canv, text="Запустить", bg=self.theme.bg, fg=self.theme.fg,
-                borderwidth=0, height=1, width=10, state="normal",
-            )
-
-            # Create Open mp folder button
-            # TODO: Callback (open mp folder)
-            x, y = 137.5 + 187.5 * ((i - 3 * (i > 2))), 140 + 190 * (i > 2)
-
             gui.Button(
-                text=f"{i}📁",
+                text="Запустить",
+                width=90,
+                height=30,
+                bg=self.theme.bg,
+                fg=self.theme.fg,
+                font=("Arial", 13),
+                border=self.theme.outline,
+                border_width=1.5,
+                callback=lambda mp=mp: launcher.launch_java(
+                    launcher.get_mp_launch_data(mp[1], mp[0])
+                )
+            ).place(screen, x-45, y+185-15)
+
+            # Create Modpack open folder button
+            gui.Button(
+                text="📁",
                 width=34,
                 height=30,
                 bg=self.theme.bg,
@@ -122,26 +131,9 @@ class App:
                 font=("Arial", 15),
                 border=self.theme.outline,
                 border_width=1.5,
-                callback=lambda mp=mp: os.startfile("")
-            ).place(screen, x-17, y-15)
-
-
-
-
-
-            # open_folder_btn = Button(
-            #     self._canv, text="📂", bg=self.theme.bg, fg=self.theme.fg,
-            #     borderwidth=0, width=3, height=1, font="Arial 13"
-            #     command=lambda mp=mp: os.startfile(
-            #         f"{ROOT_DIR}/data/minecraft/{mp[3]}/modpacks/{mp[0]}"
-            #     )
-            # )
-
-            # Place buttons
-            self._canv.create_window(
-                137.5 + 187.5 * ((i - 3 * (i > 2))),
-                185 + 190 * (i > 2), window=start_btn
-            )
+                callback=lambda mp=mp: os.startfile(launcher.\
+                    get_mp_launch_data(mp[1], mp[0]).mp_dir)
+            ).place(screen, x-17, y+140-15)
 
     def run(self):
         self._root.after(1000, self.show_mp_startup_page)

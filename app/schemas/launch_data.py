@@ -11,6 +11,7 @@ class LaunchData(BaseModel):
     access_token: str
 
 
-class CurrentLaunchData(LaunchData):
+class ModpackLaunchData(LaunchData):
+    mp_dir: Path
     version: str
     modpack: str
