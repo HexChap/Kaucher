@@ -4,6 +4,7 @@ from pymenu import *
 from pymenu import colorpy
 
 
+# noinspection PyProtectedMember,PyTypeChecker
 def main():
     columns = ["Сервер", "Версия"]
     servers = {
@@ -15,6 +16,7 @@ def main():
         columns, exit_option=ExitOption("Выйти", lambda: [colorpy.cls(), os._exit(0)])
     )
 
+    # noinspection PyTypeChecker
     def callback(o: OptionRow):
         # TODO: Start server
 

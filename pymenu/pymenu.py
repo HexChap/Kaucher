@@ -4,7 +4,7 @@ import os
 from win32process import GetWindowThreadProcessId
 from types import FunctionType, LambdaType
 from win32gui import GetForegroundWindow
-from typing import List, Union
+from typing import List, Union, Any
 from pynput import keyboard
 
 from pymenu import colorpy
