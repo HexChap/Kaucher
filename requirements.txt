@@ -1,3 +1,8 @@
+colorama==0.4.5
+psutil==5.9.1
+pynput==1.7.6
+pywin32==304
+six==1.16.0
 passlib
 pydantic
 bcrypt
