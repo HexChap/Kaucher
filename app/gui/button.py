@@ -38,7 +38,7 @@ class Button:
         self._c_bg: int = 0
         self._c_text: int = 0
 
-    def on_mouse_click(self, event: MouseEvent):
+    def _on_mouse_click(self, event: MouseEvent):
         if event.button == 1:
             if event.state:
                 self._screen.canv.itemconfig(self._c_bg, fill="#333349")

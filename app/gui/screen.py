@@ -52,7 +52,8 @@ class Screen:
         for btn, x, y in self.buttons:
             if (x <= event.x <= x + btn.width) and \
                     (y <= event.y <= y + btn.height):
-                btn.on_mouse_click(event)
+                # noinspection PyProtectedMember
+                btn._on_mouse_click(event)
 
     def event(self, func: Callable):
         """
