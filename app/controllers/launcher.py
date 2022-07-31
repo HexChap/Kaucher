@@ -1,10 +1,8 @@
 import os
-import re
 import json
 
 from app.schemas import launch_data
 
-GAME_DIR_PATTERN = re.compile(r"--gameDir (\S+)")
 RPC_CONFIG = """
 # Configuration file
 
@@ -51,7 +49,7 @@ def get_mp_launch_data(version: str, mp_name: str):
     Returns a ModpackLaunchData object from modpack version and modpack name.
     
     :param version:str: Version of the modpack.
-    :param modpack:str: Name of the modpack.
+    :param mp_name:str: Name of the modpack.
     :return: ModpackLaunchData.
     """
     with open("data") as f:
@@ -70,7 +68,7 @@ def launch_java(data: launch_data.ModpackLaunchData, use_kaboom_java: bool = Tru
     Launches a Minecraft process with given modpack data.
     
     :param data:launch_data.ModpackLaunchData: Modpack launch data.
-    :param use_kaboom_java:bool=True: Determine whether or not to use the Kaboom java runtime.
+    :param use_kaboom_java:bool=True: Determine whether to use the Kaboom java runtime.
     """
     version_dir = data.kaboom_dir / "modpacks" / data.version
     java_path = (data.kaboom_dir / "runtime-windows-x64" / "bin" / "javaw.exe") if use_kaboom_java else "javaw.exe"
@@ -83,7 +81,7 @@ def launch_java(data: launch_data.ModpackLaunchData, use_kaboom_java: bool = Tru
             memory=data.memory,
             natives=version_dir / "natives",
             cp_libs=version_dir / "libs" / "*",
-            tweak_class = tweak_classes[data.version],
+            tweak_class=tweak_classes[data.version],
             game_dir=version_dir / "modpacks" / data.modpack,
             assets=version_dir / "assets",
             version=data.version,

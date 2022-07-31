@@ -3,19 +3,20 @@ from typing import Any, Callable, TypeAlias
 
 from .screen import MouseEvent, Screen
 
-
 _FontDescription: TypeAlias = (
-    str  # "Helvetica 12"
-    | Font  # A font object constructed in Python
-    | list[Any]  # ("Helvetica", 12, BOLD)
-    | tuple[Any, ...]
+        str  # "Helvetica 12"
+        | Font  # A font object constructed in Python
+        | list[Any]  # ("Helvetica", 12, BOLD)
+        | tuple[Any, ...]
 )
 
 
 class Button:
-    def __init__(self, text: str, width: int, 
+    def __init__(
+        self, text: str, width: int,
         height: int, bg: str = "#fff", fg: str = "#000", font: _FontDescription = ...,
-        border: str = "#000", border_width: int = 1, callback: Callable = None) -> None:
+        border: str = "#000", border_width: int = 1, callback: Callable = None
+    ) -> None:
         self.text = text
 
         self.width = width
@@ -34,10 +35,10 @@ class Button:
         self.callback = callback or (lambda: 1)
 
         # Canvas parts
-        self._c_bg: int = None
-        self._c_text: int = None
+        self._c_bg: int = 0
+        self._c_text: int = 0
 
-    def _on_mouse_click(self, event: MouseEvent):
+    def on_mouse_click(self, event: MouseEvent):
         if event.button == 1:
             if event.state:
                 self._screen.canv.itemconfig(self._c_bg, fill="#333349")
@@ -55,13 +56,13 @@ class Button:
         :param y:int: y-coordinate of the button.
         """
         self._screen = screen
-        
+
         self._c_bg = screen.canv.create_rectangle(
-            x, y, x+self.width, y+self.height, fill=self._bg, 
+            x, y, x + self.width, y + self.height, fill=self._bg,
             outline=self._border, width=self._border_width, tags="CustomButton"
         )
         self._c_text = screen.canv.create_text(
-            x + (self.width//2), y + (self.height//2) - 2, text=self.text, 
+            x + (self.width // 2), y + (self.height // 2) - 2, text=self.text,
             fill=self._fg, font=self._font, tags="CustomButtonText"
         )
 

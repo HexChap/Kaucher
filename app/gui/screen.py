@@ -22,21 +22,21 @@ class MouseEvent:
 
 
 class Screen:
+    BUTTON_TAGS = ["CustomButton", "CustomButtonText"]
+
     def __init__(self, canvas: tkinter.Canvas) -> None:
         self.canv = canvas
-        self.buttons: list[tuple[Button, int]] = []
-
-        BUTTON_TAGS = ["CustomButton", "CustomButtonText"]
+        self.buttons: list[tuple[Button, int, int]] = []
 
         # Mouse button press events
         [canvas.tag_bind(tag, "<ButtonPress>", lambda e: self._on_mouse_click(
             MouseEvent(e.x, e.y, e.num, True)
-        )) for tag in BUTTON_TAGS]
+        )) for tag in self.BUTTON_TAGS]
 
         # Mouse button release events
         [canvas.tag_bind(tag, "<ButtonRelease>", lambda e: self._on_mouse_click(
             MouseEvent(e.x, e.y, e.num, False)
-        )) for tag in BUTTON_TAGS]
+        )) for tag in self.BUTTON_TAGS]
 
     def _on_mouse_click(self, event: MouseEvent):
         """
@@ -50,9 +50,9 @@ class Screen:
             self.on_mouse_click(event)
 
         for btn, x, y in self.buttons:
-            if (event.x >= x and event.x <= x+btn.width) and \
-                (event.y >= y and event.y <= y+btn.height):
-                btn._on_mouse_click(event)
+            if (x <= event.x <= x + btn.width) and \
+                    (y <= event.y <= y + btn.height):
+                btn.on_mouse_click(event)
 
     def event(self, func: Callable):
         """
