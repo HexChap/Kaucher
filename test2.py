@@ -1,6 +1,5 @@
 from app.controllers.extractor import extract_data
 
 
-
-extract_data(True)
-
+while True:
+    extract_data()

@@ -1,10 +1,9 @@
-from dataclasses import dataclass
 import os
-from tkinter import Button, Canvas, Tk
-import tkinter
+from dataclasses import dataclass
+from tkinter import Canvas, Tk
 
-from app.controllers import launcher, extractor
 from app import gui
+from app.controllers import launcher
 
 
 class Utils:
@@ -28,6 +27,8 @@ class Theme:
 
 
 class App:
+    MP_FOR_PAGE = 6
+
     def __init__(self) -> None:
         self._window_title = "Kaucher"
         self._window_size = [650, 450]
@@ -45,7 +46,7 @@ class App:
         self.init_window()
 
         self._canv = Canvas(
-            self._root, bg=self.theme.bg, width=self._window_size[0], 
+            self._root, bg=self.theme.bg, width=self._window_size[0],
             height=self._window_size[1], highlightthickness=0
         )
         self._canv.pack()
@@ -65,6 +66,7 @@ class App:
     def clear_screen(self):
         self._canv.delete("all")
 
+    # noinspection PyDefaultArgument
     # Menus
     def show_mp_startup_page(self, page: int = 1):
         """
@@ -74,7 +76,6 @@ class App:
         """
         self.clear_screen()
 
-        MP_FOR_PAGE = 6
         mp_list = []
 
         for k, v in launcher.modpacks.items():
@@ -83,14 +84,14 @@ class App:
         screen = gui.Screen(self._canv)
 
         # Add buttons with mp names
-        for i, mp in enumerate(mp_list[(page-1)*MP_FOR_PAGE:page*MP_FOR_PAGE]):
+        for i, mp in enumerate(mp_list[(page - 1) * self.MP_FOR_PAGE:page * self.MP_FOR_PAGE]):
             self._canv.create_rectangle(
                 75 + ((i - 3 * (i > 2)) * 187.5), 60 + 190 * (i > 2),
                 75 + ((i - 3 * (i > 2)) * 187.5) + 125, 200 + 190 * (i > 2),
                 fill=self.theme.mp_bg, outline=self.theme.outline, width=1.5
             )
 
-            # Create modpack info text
+            # Create modpack's info text
             self._canv.create_text(
                 137.5 + ((i - 3 * (i > 2)) * 187.5), 80 + 190 * (i > 2),
                 text=mp[0].title(), font=self.theme.font_family,
@@ -103,9 +104,9 @@ class App:
             )
 
             # Create buttons
-            x, y = 137.5 + 187.5 * ((i - 3 * (i > 2))), 190 * (i > 2)
+            x, y = 137.5 + 187.5 * (i - 3 * (i > 2)), 190 * (i > 2)
 
-            # Create Modpack start button
+            # Create modpack's start button
             # TODO: Callback (launch mp)
             gui.Button(
                 text="Запустить",
@@ -119,9 +120,9 @@ class App:
                 callback=lambda mp=mp: launcher.launch_java(
                     launcher.get_mp_launch_data(mp[1], mp[0])
                 )
-            ).place(screen, x-45, y+185-15)
+            ).place(screen, x - 45, y + 185 - 15)
 
-            # Create Modpack open folder button
+            # Create modpack's open folder button
             gui.Button(
                 text="📁",
                 width=34,
@@ -131,9 +132,10 @@ class App:
                 font=("Arial", 15),
                 border=self.theme.outline,
                 border_width=1.5,
-                callback=lambda mp=mp: os.startfile(launcher.\
-                    get_mp_launch_data(mp[1], mp[0]).mp_dir)
-            ).place(screen, x-17, y+140-15)
+                callback=lambda mp=mp: os.startfile(
+                    launcher.get_mp_launch_data(mp[1], mp[0]).mp_dir
+                )
+            ).place(screen, x - 17, y + 140 - 15)
 
     def run(self):
         self._root.after(1000, self.show_mp_startup_page)

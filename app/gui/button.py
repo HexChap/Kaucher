@@ -10,12 +10,14 @@ _FontDescription: TypeAlias = (
         | tuple[Any, ...]
 )
 
+numeric: TypeAlias = int | float
+
 
 class Button:
     def __init__(
         self, text: str, width: int,
         height: int, bg: str = "#fff", fg: str = "#000", font: _FontDescription = ...,
-        border: str = "#000", border_width: int = 1, callback: Callable = None
+        border: str = "#000", border_width: numeric = 1, callback: Callable = None
     ) -> None:
         self.text = text
 
@@ -47,7 +49,7 @@ class Button:
                 self._screen.canv.itemconfig(self._c_bg, fill=self._bg)
                 self.callback()
 
-    def place(self, screen: Screen, x: int, y: int):
+    def place(self, screen: Screen, x: numeric, y: numeric):
         """
         Places the button on the specified screen.
         
