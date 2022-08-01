@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class LaunchData(BaseModel):
+    java: Path
     username: str
     kaboom_dir: Path
     memory: int

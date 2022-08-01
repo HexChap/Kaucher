@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import psutil
 
@@ -26,6 +27,31 @@ def extract_data() -> launch_data.LaunchData:
             )
 
             return update_data_file(data)
+
+
+def get_static_data() -> launch_data.LaunchData:
+    with open("data") as f:
+        static_data = launch_data.LaunchData(**json.load(f))
+
+    return static_data
+
+
+def get_mp_launch_data(version: str, mp_name: str) -> launch_data.ModpackLaunchData:
+    """
+    Returns a ModpackLaunchData object from modpack version and modpack name.
+
+    :param version:str: Version of the modpack.
+    :param mp_name:str: Name of the modpack.
+    :return: ModpackLaunchData.
+    """
+    static_data = get_static_data()
+
+    return launch_data.ModpackLaunchData(
+        **static_data.dict(),
+        mp_dir=static_data.kaboom_dir / "modpacks" / version / "modpacks" / mp_name,
+        version=version,
+        modpack=mp_name
+    )
 
 
 def update_data_file(new_data: launch_data.LaunchData) -> launch_data.LaunchData:

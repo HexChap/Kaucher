@@ -1,5 +1,4 @@
 import os
-import json
 
 from app.schemas import launch_data
 
@@ -44,25 +43,6 @@ modpacks = {
 }
 
 
-def get_mp_launch_data(version: str, mp_name: str):
-    """
-    Returns a ModpackLaunchData object from modpack version and modpack name.
-    
-    :param version:str: Version of the modpack.
-    :param mp_name:str: Name of the modpack.
-    :return: ModpackLaunchData.
-    """
-    with open("data") as f:
-        static_data = launch_data.LaunchData(**json.load(f))
-
-    return launch_data.ModpackLaunchData(
-        **static_data.dict(),
-        mp_dir=static_data.kaboom_dir / "modpacks" / version / "modpacks" / mp_name,
-        version=version,
-        modpack=mp_name
-    )
-
-
 def launch_java(data: launch_data.ModpackLaunchData, use_kaboom_java: bool = True):
     """
     Launches a Minecraft process with given modpack data.
@@ -70,8 +50,9 @@ def launch_java(data: launch_data.ModpackLaunchData, use_kaboom_java: bool = Tru
     :param data:launch_data.ModpackLaunchData: Modpack launch data.
     :param use_kaboom_java:bool=True: Determine whether to use the Kaboom java runtime.
     """
+
     version_dir = data.kaboom_dir / "modpacks" / data.version
-    java_path = (data.kaboom_dir / "runtime-windows-x64" / "bin" / "javaw.exe") if use_kaboom_java else "javaw.exe"
+    java_path = (data.kaboom_dir / "runtime-windows-x64" / "bin" / "javaw.exe") if use_kaboom_java else data.java
 
     os.chdir(data.mp_dir)
 

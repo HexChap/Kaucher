@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from tkinter import Canvas, Tk
 
 from app import gui
-from app.controllers import launcher
+from app.controllers.launcher import modpacks, launch_java
+from app.controllers.extractor import get_mp_launch_data
 
 
 class Utils:
@@ -78,7 +79,7 @@ class App:
 
         mp_list = []
 
-        for k, v in launcher.modpacks.items():
+        for k, v in modpacks.items():
             mp_list.extend([[mp, k] for mp in v])
 
         screen = gui.Screen(self._canv)
@@ -117,8 +118,8 @@ class App:
                 font=("Arial", 13),
                 border=self.theme.outline,
                 border_width=1.5,
-                callback=lambda mp=mp: launcher.launch_java(
-                    launcher.get_mp_launch_data(mp[1], mp[0])
+                callback=lambda mp=mp: launch_java(
+                    get_mp_launch_data(mp[1], mp[0])
                 )
             ).place(screen, x - 45, y + 185 - 15)
 
@@ -133,7 +134,7 @@ class App:
                 border=self.theme.outline,
                 border_width=1.5,
                 callback=lambda mp=mp: os.startfile(
-                    launcher.get_mp_launch_data(mp[1], mp[0]).mp_dir
+                    get_mp_launch_data(mp[1], mp[0]).mp_dir
                 )
             ).place(screen, x - 17, y + 140 - 15)
 
