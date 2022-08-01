@@ -4,30 +4,28 @@ import psutil
 from app.schemas import launch_data
 
 
-def extract_data(condition: bool) -> launch_data.LaunchData:
+def extract_data() -> launch_data.LaunchData:
     """
     Finds javaw process and extracts info from its start command line.
 
-    :param condition: Until when to search for the process
     :return: Username, game directory, access token and uuid
     """
-    while condition:
-        for proc in psutil.process_iter():
-            if proc.name() == "javaw.exe":
-                j_cmdline = proc.cmdline()
+    for proc in psutil.process_iter():
+        if proc.name() == "javaw.exe":
+            j_cmdline = proc.cmdline()
 
-                if "--accessToken" not in j_cmdline:
-                    continue
+            if "--accessToken" not in j_cmdline:
+                continue
 
-                data = launch_data.LaunchData(
-                    username=_get_value_cmdline("--username", j_cmdline),
-                    kaboom_dir=Path(_get_value_cmdline("--assetsDir", j_cmdline)).parent.parent.parent,
-                    memory="2048",
-                    uuid=_get_value_cmdline("--uuid", j_cmdline),
-                    access_token=_get_value_cmdline("--accessToken", j_cmdline)
-                )
+            data = launch_data.LaunchData(
+                username=_get_value_cmdline("--username", j_cmdline),
+                kaboom_dir=Path(_get_value_cmdline("--assetsDir", j_cmdline)).parent.parent.parent,
+                memory="2048",
+                uuid=_get_value_cmdline("--uuid", j_cmdline),
+                access_token=_get_value_cmdline("--accessToken", j_cmdline)
+            )
 
-                return update_data_file(data)
+            return update_data_file(data)
 
 
 def update_data_file(new_data: launch_data.LaunchData) -> launch_data.LaunchData:

@@ -1,13 +1,8 @@
 import os
-import re
 import json
-import shutil
-from pathlib import Path
 
 from app.schemas import launch_data
-from app.core import errors
 
-GAME_DIR_PATTERN = re.compile(r"--gameDir (\S+)")
 RPC_CONFIG = """
 # Configuration file
 
@@ -30,59 +25,64 @@ tweak_classes = {
     "1.12.2": "net.minecraftforge"
 }
 modpacks = {
-        "1.7.10": [
-            "tesla",
-            "skyfactory",
-            "spacex",
-            "nevermine",
-            "dragonglory",
-            "darkshire"
-        ],
-        "1.12.2": [
-            "edison",
-            "pixelmon",
-            "terrafirmacraft",
-            "nightmare",
-            "cybermagic",
-            "claustrophobia"
-        ]
-    }
+    "1.7.10": [
+        "tesla",
+        "skyfactory",
+        "spacex",
+        "nevermine",
+        "dragonglory",
+        "darkshire"
+    ],
+    "1.12.2": [
+        "edison",
+        "pixelmon",
+        "terrafirmacraft",
+        "nightmare",
+        "cybermagic",
+        "claustrophobia"
+    ]
+}
 
 
-def get_current_launch_data(version: str, modpack: str):
-    if version not in modpacks.keys():
-        raise errors.WrongVersionError
-
-    if modpack not in modpacks[version]:
-        raise errors.ModpackDoesNotExists
-
+def get_mp_launch_data(version: str, mp_name: str):
+    """
+    Returns a ModpackLaunchData object from modpack version and modpack name.
+    
+    :param version:str: Version of the modpack.
+    :param mp_name:str: Name of the modpack.
+    :return: ModpackLaunchData.
+    """
     with open("data") as f:
         static_data = launch_data.LaunchData(**json.load(f))
 
-    return launch_data.CurrentLaunchData(
+    return launch_data.ModpackLaunchData(
+        **static_data.dict(),
+        mp_dir=static_data.kaboom_dir / "modpacks" / version / "modpacks" / mp_name,
         version=version,
-        modpack=modpack,
-        **static_data.dict()
+        modpack=mp_name
     )
 
 
-def launch_java(data: launch_data.CurrentLaunchData):
+def launch_java(data: launch_data.ModpackLaunchData, use_kaboom_java: bool = True):
+    """
+    Launches a Minecraft process with given modpack data.
+    
+    :param data:launch_data.ModpackLaunchData: Modpack launch data.
+    :param use_kaboom_java:bool=True: Determine whether to use the Kaboom java runtime.
+    """
     version_dir = data.kaboom_dir / "modpacks" / data.version
-    modpack_dir = version_dir / "modpacks" / data.modpack
+    java_path = (data.kaboom_dir / "runtime-windows-x64" / "bin" / "javaw.exe") if use_kaboom_java else "javaw.exe"
 
-    remove_nguard(data)
-    extend_mods(data)
-
-    os.chdir(modpack_dir)
+    os.chdir(data.mp_dir)
 
     os.popen(
         launch_cmdline.format(
-            java_path=data.kaboom_dir / "runtime-windows-x64" / "bin" / "javaw.exe",
+            java_path=java_path,
             memory=data.memory,
             natives=version_dir / "natives",
             cp_libs=version_dir / "libs" / "*",
-            tweak_class = tweak_classes[data.version],
-            game_dir=modpack_dir,
+            tweak_class=tweak_classes[data.version],
+            game_dir=version_dir / "modpacks" / data.modpack,
             assets=version_dir / "assets",
             version=data.version,
             uuid=data.uuid,
@@ -109,33 +109,16 @@ def modify_rpc(data: launch_data.LaunchData, server: str | int):
         f.write(RPC_CONFIG % server)
 
 
-def remove_nguard(data: launch_data.CurrentLaunchData):
+def remove_nguard(data: launch_data.LaunchData):
     """
     Removes nGuardMod.
 
     :param data: Launch data
     :return:
     """
-    modpacks_dir = data.kaboom_dir / "modpacks" / data.version / "modpacks" / data.modpack
-    n_guard_path = modpacks_dir / "mods" / "1.7.10" / "nGuardMod.jar"
 
+    game_dir = data.kaboom_dir / "modpacks" / "1.7.10" / "tesla"
+
+    n_guard_path = game_dir / "mods" / "1.7.10" / "nGuardMod.jar"
     if os.path.isfile(n_guard_path):
         os.remove(n_guard_path)
-
-
-def extend_mods(data: launch_data.CurrentLaunchData):
-    """
-    Extends mods in the modpack dir via mods from the **mods** folder.
-
-    :param data: Launch data
-    :return:
-    """
-    local_mods_folder = Path(r"mods")
-    modpacks_dir = data.kaboom_dir / "modpacks" / data.version / "modpacks" / data.modpack
-
-    for file in os.listdir(local_mods_folder):
-        print(f"+ Extended with {file}")
-        if os.path.exists(modpacks_dir / "mods" / file):
-            continue
-
-        shutil.copy(local_mods_folder / file, modpacks_dir / "mods")
