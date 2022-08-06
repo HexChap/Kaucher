@@ -5,7 +5,7 @@ import psutil
 from app.schemas import launch_data_schemas
 
 
-def extract_data() -> launch_data.LaunchData:
+def extract_data() -> launch_data_schemas.LaunchData:
     """
     Finds javaw process and extracts info from its start command line.
 
@@ -18,7 +18,7 @@ def extract_data() -> launch_data.LaunchData:
             if "--accessToken" not in j_cmdline:
                 continue
 
-            data = launch_data.LaunchData(
+            data = launch_data_schemas.LaunchData(
                 username=_get_value_cmdline("--username", j_cmdline),
                 kaboom_dir=Path(_get_value_cmdline("--assetsDir", j_cmdline)).parent.parent.parent,
                 memory="2048",
@@ -29,14 +29,14 @@ def extract_data() -> launch_data.LaunchData:
             return update_data_file(data)
 
 
-def get_static_data() -> launch_data.LaunchData:
+def get_static_data() -> launch_data_schemas.LaunchData:
     with open("data") as f:
-        static_data = launch_data.LaunchData(**json.load(f))
+        static_data = launch_data_schemas.LaunchData(**json.load(f))
 
     return static_data
 
 
-def get_mp_launch_data(version: str, mp_name: str) -> launch_data.ModpackLaunchData:
+def get_mp_launch_data(version: str, mp_name: str) -> launch_data_schemas.ModpackLaunchData:
     """
     Returns a ModpackLaunchData object from modpack version and modpack name.
 
@@ -46,7 +46,7 @@ def get_mp_launch_data(version: str, mp_name: str) -> launch_data.ModpackLaunchD
     """
     static_data = get_static_data()
 
-    return launch_data.ModpackLaunchData(
+    return launch_data_schemas.ModpackLaunchData(
         **static_data.dict(),
         mp_dir=static_data.kaboom_dir / "modpacks" / version / "modpacks" / mp_name,
         version=version,
@@ -54,7 +54,7 @@ def get_mp_launch_data(version: str, mp_name: str) -> launch_data.ModpackLaunchD
     )
 
 
-def update_data_file(new_data: launch_data.LaunchData) -> launch_data.LaunchData:
+def update_data_file(new_data: launch_data_schemas.LaunchData) -> launch_data_schemas.LaunchData:
     """
     Updates data file with new values.
 

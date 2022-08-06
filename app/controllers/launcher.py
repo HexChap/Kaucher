@@ -43,7 +43,7 @@ modpacks = {
 }
 
 
-def launch_java(data: launch_data.ModpackLaunchData, use_kaboom_java: bool = True):
+def launch_java(data: launch_data_schemas.ModpackLaunchData, use_kaboom_java: bool = True):
     """
     Launches a Minecraft process with given modpack data.
     
@@ -73,7 +73,7 @@ def launch_java(data: launch_data.ModpackLaunchData, use_kaboom_java: bool = Tru
     )
 
 
-def modify_rpc(data: launch_data.LaunchData, server: str | int):
+def modify_rpc(data: launch_data_schemas.LaunchData, server: str | int):
     """
     Modifiying Discord RPC.
 
@@ -81,7 +81,7 @@ def modify_rpc(data: launch_data.LaunchData, server: str | int):
     :param server: What will be written in the **Servername** field
     :return: None
     """
-    if not isinstance(data, launch_data.LaunchData):
+    if not isinstance(data, launch_data_schemas.LaunchData):
         raise TypeError
 
     game_dir = data.kaboom_dir / "modpacks" / "1.7.10" / "tesla"
@@ -90,7 +90,7 @@ def modify_rpc(data: launch_data.LaunchData, server: str | int):
         f.write(RPC_CONFIG % server)
 
 
-def remove_nguard(data: launch_data.LaunchData):
+def remove_nguard(data: launch_data_schemas.LaunchData):
     """
     Removes nGuardMod.
 
