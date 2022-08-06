@@ -1,0 +1,4 @@
+API_BASE_PATH = "http://127.0.0.1:8000"
+API_VER = "v1"
+BUILD_VER = "6.0"
+CLIENT_VERSION = "1.6.0"

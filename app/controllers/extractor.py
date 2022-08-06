@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import psutil
 
-from app.schemas import launch_data
+from app.schemas import launch_data_schemas
 
 
 def extract_data() -> launch_data.LaunchData:

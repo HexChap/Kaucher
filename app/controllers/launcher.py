@@ -1,6 +1,6 @@
 import os
 
-from app.schemas import launch_data
+from app.schemas import launch_data_schemas
 
 RPC_CONFIG = """
 # Configuration file
